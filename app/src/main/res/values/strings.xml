@@ -5,4 +5,8 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
+    <string name="punts_button">I\'m In Punter\'s</string>
+    <string name="punts_question">Time Since You\'ve Last Been To Punter\'s: </string>
+    <string name="punts_never_been">You Haven\'t Been To Punter\'s Since Getting This App!</string>
+
 </resources>
