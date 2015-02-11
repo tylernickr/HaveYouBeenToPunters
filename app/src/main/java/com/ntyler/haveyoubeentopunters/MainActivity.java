@@ -1,6 +1,7 @@
 package com.ntyler.haveyoubeentopunters;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.view.View.OnClickListener;
 
 public class MainActivity extends Activity implements OnClickListener {
     private static final String TAG = "Main_Screen";
+    public static final String PREFS_NAME = "PuntsPreferences";
 
     Time mCurrentTime;
     Time mLastPuntsVisit;
@@ -23,16 +25,19 @@ public class MainActivity extends Activity implements OnClickListener {
 
         setContentView(R.layout.activity_main);
 
+        SharedPreferences data = getSharedPreferences(PREFS_NAME, 0);
+        long lastPuntsVisit = data.getLong("lastPuntsVisit", 0);
+        Log.d(TAG, "onCreate");
         mLastPuntsVisit = new Time();
-        if ( savedInstanceState != null ) {
-            mLastPuntsVisit.set(savedInstanceState.getLong("puntsTime"));
-        }
-        mPuntsText = (TextView) findViewById(R.id.punts_time);
+        mLastPuntsVisit.set(lastPuntsVisit);
+        Log.d(TAG, mLastPuntsVisit.toString());
 
+        mCurrentTime = new Time();
+
+        mPuntsText = (TextView) findViewById(R.id.punts_time);
         View puntsButton = findViewById(R.id.punts_button);
         puntsButton.setOnClickListener(this);
-        mCurrentTime = new Time();
-        mCurrentTime.setToNow();
+
 
 
     }
@@ -42,7 +47,7 @@ public class MainActivity extends Activity implements OnClickListener {
         super.onResume();
         Log.d(TAG, "onResume");
         mCurrentTime.setToNow();
-        if (mLastPuntsVisit != null) {
+        if (mLastPuntsVisit.toMillis(true) != 0) {
             double currentTime = mCurrentTime.toMillis(false);
             double lastPuntsVisit = mLastPuntsVisit.toMillis(false);
             double hoursSince = ((currentTime - lastPuntsVisit) / 3600000.0);
@@ -55,13 +60,15 @@ public class MainActivity extends Activity implements OnClickListener {
             case R.id.punts_button:
                 mCurrentTime.setToNow();
                 mLastPuntsVisit.setToNow();
-                if (mLastPuntsVisit != null) {
-                    double currentTime = mCurrentTime.toMillis(false);
-                    double lastPuntsVisit = mLastPuntsVisit.toMillis(false);
-                    double hoursSince = ((currentTime - lastPuntsVisit) / 3600000.0);
-                    String result = ((Double)hoursSince).toString();
-                    mPuntsText.setText("Hours: " + result);
-                }
+                SharedPreferences data = getSharedPreferences(PREFS_NAME, 0);
+                SharedPreferences.Editor editor = data.edit();
+                editor.putLong("lastPuntsVisit", mLastPuntsVisit.toMillis(true));
+                editor.commit();
+                double currentTime = mCurrentTime.toMillis(false);
+                double lastPuntsVisit = mLastPuntsVisit.toMillis(false);
+                double hoursSince = ((currentTime - lastPuntsVisit) / 3600000.0);
+                String result = ((Double)hoursSince).toString();
+                mPuntsText.setText("Hours: " + result);
 
         }
     }
@@ -70,6 +77,5 @@ public class MainActivity extends Activity implements OnClickListener {
     public void onSaveInstanceState(Bundle state) {
         Log.d(TAG, "Saving Bundle");
         super.onSaveInstanceState(state);
-        state.putLong("puntsTime", mLastPuntsVisit.toMillis(true));
     }
 }
